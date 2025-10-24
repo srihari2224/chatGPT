@@ -1,6 +1,6 @@
 import express from "express";
 import Thread from "../models/Thread.js";
-import getOpenAIAPIResponse from "../utils/openai.js";
+import getGeminiAPIResponse from "../utils/gemini.js";
 
 const router = express.Router();
 
@@ -8,8 +8,8 @@ const router = express.Router();
 router.post("/test", async(req, res) => {
     try {
         const thread = new Thread({
-            threadId: "abc",
-            title: "Testing New Thread2"
+            threadId: "heo",
+            title: "bye"
         });
 
         const response = await thread.save();
@@ -39,7 +39,7 @@ router.get("/thread/:threadId", async(req, res) => {
         const thread = await Thread.findOne({threadId});
 
         if(!thread) {
-            res.status(404).json({error: "Thread not found"});
+            return res.status(404).json({error: "Thread not found"});
         }
 
         res.json(thread.messages);
@@ -56,7 +56,7 @@ router.delete("/thread/:threadId", async (req, res) => {
         const deletedThread = await Thread.findOneAndDelete({threadId});
 
         if(!deletedThread) {
-            res.status(404).json({error: "Thread not found"});
+            return res.status(404).json({error: "Thread not found"});
         }
 
         res.status(200).json({success : "Thread deleted successfully"});
@@ -71,7 +71,7 @@ router.post("/chat", async(req, res) => {
     const {threadId, message} = req.body;
 
     if(!threadId || !message) {
-        res.status(400).json({error: "missing required fields"});
+        return res.status(400).json({error: "missing required fields"});
     }
 
     try {
@@ -88,7 +88,7 @@ router.post("/chat", async(req, res) => {
             thread.messages.push({role: "user", content: message});
         }
 
-        const assistantReply = await getOpenAIAPIResponse(message);
+        const assistantReply = await getGeminiAPIResponse(message);
 
         thread.messages.push({role: "assistant", content: assistantReply});
         thread.updatedAt = new Date();
@@ -101,7 +101,5 @@ router.post("/chat", async(req, res) => {
     }
 });
 
-
-
-
 export default router;
+

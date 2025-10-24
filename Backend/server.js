@@ -3,6 +3,7 @@ import "dotenv/config";
 import cors from "cors";
 import mongoose from "mongoose";
 import chatRoutes from "./routes/chat.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
 const PORT = 8080;
@@ -26,30 +27,17 @@ const connectDB = async() => {
     }
 }
 
+app.post("/test", async (req, res) => {
+    try {
+        const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-// app.post("/test", async (req, res) => {
-//     const options = {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json",
-//             "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-//         },
-//         body: JSON.stringify({
-//             model: "gpt-4o-mini",
-//             messages: [{
-//                 role: "user",
-//                 content: req.body.message
-//             }]
-//         })
-//     };
-
-//     try {
-//         const response = await fetch("https://api.openai.com/v1/chat/completions", options);
-//         const data = await response.json();
-//         //console.log(data.choices[0].message.content); //reply
-//         res.send(data.choices[0].message.content);
-//     } catch(err) {
-//         console.log(err);
-//     }
-// });
-
+        const response = await model.generateContent(req.body.message);
+        const text = response.response.text();
+        
+        res.send(text);
+    } catch(err) {
+        console.error("Error:", err);
+        res.status(500).send("Error generating response");
+    }
+});
